@@ -18,7 +18,7 @@ def printwithnewlines(list):
 # Directory in which JSON profiles are to be found
 
 if len(sys.argv) < 3:
-    print("Wrong number of arguments - Useage FHIR_Load.py profile1 profile2")
+    print("Wrong number of arguments - Useage FHIR_Load.py profile1 profile2 [-all]")
 else:
 
 # Load profile 1 in to python dictionary
