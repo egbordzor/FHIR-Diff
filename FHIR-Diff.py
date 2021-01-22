@@ -18,7 +18,7 @@ def printwithnewlines(list):
 # As a minimum must be 2 arguments 3 as argv[0] is the thr program name
 
 if len(sys.argv) < 3:
-    print("Wrong number of arguments - Useage FHIR_Load.py profile1 profile2 [-all] [-deep] [-excel <filname>]")
+    print("Wrong number of arguments - Useage FHIR_Load.py profile1 profile2 [-all] [-level n][-sheet <filname>]")
     quit()
 
 # Load profile 1 in to python dictionary
@@ -34,19 +34,27 @@ with open(filename2) as f2:
     profile_json2= json.load(f2)
     f2.close()
 
-# Extract non-metadata elements or all elements when option -deep has been specified
-# Non-metadata elements are those with clinical signicance They are those where element.id = element.base.path
+# Get level value if specified otherwise 0
+
+if "-level" in sys.argv:
+    levelposition=sys.argv.index("-level")+1
+    if levelposition >= len(sys.argv) or not sys.argv[levelposition].isnumeric():
+        print('-level without value')
+        quit()
+    else:
+         level = int(sys.argv[levelposition])
+else:
+    level = int(10)
+
+# Extract Elements from Snapshot
 # First for profile 1
 # Append it to list "output1" and sort it
 output1=[]
 i=0
 while i < len(profile_json1["snapshot"]["element"]):
-    if "-deep" in sys.argv:
-        output1.append(profile_json1["snapshot"]["element"][i]["id"])
-    else:
-        if profile_json1["snapshot"]["element"][i]["base"]["path"] == profile_json1["snapshot"]["element"][i]["id"]:
-            output1.append(profile_json1["snapshot"]["element"][i]["id"])
-        #print(profile_json1["snapshot"]["element"][i]["id"])
+    element = profile_json1["snapshot"]["element"][i]["id"]
+    if element.count('.') <= level and element.count('.') > 0:
+        output1.append(element.split('.',1)[1])
     i += 1
 output1.sort()
 
@@ -54,14 +62,10 @@ output1.sort()
 # Append it to list "output2" and sort it
 output2=[]
 i=0
-
 while i < len(profile_json2["snapshot"]["element"]):
-    if "-deep" in sys.argv:
-        output2.append(profile_json2["snapshot"]["element"][i]["id"])
-    else:
-        if profile_json2["snapshot"]["element"][i]["base"]["path"] == profile_json2["snapshot"]["element"][i]["id"]:
-            output2.append(profile_json2["snapshot"]["element"][i]["id"])
-            #print(profile_json2["snapshot"]["element"][i]["id"])
+    element = profile_json2["snapshot"]["element"][i]["id"]
+    if element.count('.') <= level and element.count('.') > 0:
+        output2.append(element.split('.',1)[1])
     i += 1
 output2.sort()
 
@@ -74,9 +78,9 @@ In_profile1_not_profile2 = [x for x in output1 if x not in output2]
 # Find all items that are in profile2 but not profile1 and print them
 In_profile2_not_profile1 = [x for x in output2 if x not in output1]
 
-# If output to Excel not selected output to stdout
+# If output to sheet not selected output to stdout
 
-if not "-excel" in sys.argv:
+if not "-sheet" in sys.argv:
 
 # If option -all has been specified then print the full list of items not just the diffs
     if "-all" in sys.argv:
@@ -104,13 +108,13 @@ if not "-excel" in sys.argv:
 
 else:
 
-# Build a dataframe to export to excel
-# Get filename for excel file
-    filenameposition=sys.argv.index("-excel")+1
+# Build a dataframe to export to sheet
+# Get filename for sheet file
+    filenameposition=sys.argv.index("-sheet")+1
     if filenameposition == len(sys.argv):
-        print('-excel without filename')
+        print('-sheet without filename')
         quit()
-    excelfile=sys.argv[filenameposition] + ".xlsx"
+    sheetfile=sys.argv[filenameposition] + ".xlsx"
 
 # Build a list containing all items in both profiles
     allitems = In_profile1_and_profile2 + In_profile1_not_profile2 + In_profile2_not_profile1
@@ -142,4 +146,4 @@ else:
     transpose=list(map(list, zip(*dataforframe)))
     df = DataFrame (transpose, columns=['Items',profile1,profile2])
     #print(df)
-    df.to_excel(excelfile,index=False, header=True)
+    df.to_excel(sheetfile,index=False, header=True)
