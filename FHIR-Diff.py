@@ -18,7 +18,7 @@ def printwithnewlines(list):
 # As a minimum must be 2 arguments 3 as argv[0] is the thr program name
 
 if len(sys.argv) < 3:
-    print("Wrong number of arguments - Useage FHIR_Load.py profile1 profile2 [-all] [-level n][-sheet <filname>]")
+    print("Wrong number of arguments - Useage FHIR_Load.py profile1 profile2 [-all] [-level n][-meta][-sheet <filname>]")
     quit()
 
 # Load profile 1 in to python dictionary
@@ -54,7 +54,11 @@ i=0
 while i < len(profile_json1["snapshot"]["element"]):
     element = profile_json1["snapshot"]["element"][i]["id"]
     if element.count('.') <= level and element.count('.') > 0:
-        output1.append(element.split('.',1)[1])
+        if "-meta" in sys.argv:
+            output1.append(element.split('.',1)[1])
+        else:
+            if (element.split('.')[1]) != "meta":
+                output1.append(element.split('.',1)[1])
     i += 1
 output1.sort()
 
@@ -65,7 +69,11 @@ i=0
 while i < len(profile_json2["snapshot"]["element"]):
     element = profile_json2["snapshot"]["element"][i]["id"]
     if element.count('.') <= level and element.count('.') > 0:
-        output2.append(element.split('.',1)[1])
+        if "-meta" in sys.argv:
+            output2.append(element.split('.',1)[1])
+        else:
+            if (element.split('.')[1]) != "meta":
+                output2.append(element.split('.',1)[1])
     i += 1
 output2.sort()
 
