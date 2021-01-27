@@ -9,6 +9,10 @@ import pandas as pd
 from pandas import DataFrame
 import openpyxl
 
+# define meta elemenets
+
+metaelements =['id','extension','language','implicitRules','modifierExtension','contained']
+
 def printwithnewlines(list):
 # Print all the elements of a list on a new line
     i = 0
@@ -53,14 +57,17 @@ output1=[]
 i=0
 while i < len(profile_json1["snapshot"]["element"]):
     element = profile_json1["snapshot"]["element"][i]["id"]
-    if element.count('.') <= level and element.count('.') > 0:
+    if "-meta" not in sys.argv:
+        if element.split('.')[element.count('.')] in metaelements:
+            element = "none"
+    if element.count('.') <= level and element.count('.') > 0:#and ".id" not in element and ".extension" not in element:
         if "-meta" in sys.argv:
             output1.append(element.split('.',1)[1])
         else:
             if (element.split('.')[1]) != "meta":
                 output1.append(element.split('.',1)[1])
     i += 1
-output1.sort()
+#output1.sort()
 
 # Then for profile 2
 # Append it to list "output2" and sort it
@@ -68,14 +75,17 @@ output2=[]
 i=0
 while i < len(profile_json2["snapshot"]["element"]):
     element = profile_json2["snapshot"]["element"][i]["id"]
-    if element.count('.') <= level and element.count('.') > 0:
+    if "-meta" not in sys.argv:
+        if element.split('.')[element.count('.')] in metaelements:
+            element = "none"
+    if element.count('.') <= level and element.count('.') > 0:# and '.id' not in element and '.extension' not in element:
         if "-meta" in sys.argv:
             output2.append(element.split('.',1)[1])
         else:
             if (element.split('.')[1]) != "meta":
                 output2.append(element.split('.',1)[1])
     i += 1
-output2.sort()
+#output2.sort()
 
 # Find all items that are the same in both profiles and print them
 In_profile1_and_profile2 = [x for x in output1 if x in output2]
@@ -144,14 +154,21 @@ else:
         else:
             column2.append(" ")
 
+# Prepare list showing hierarchy level of each item
+
+    levels=[]
+    for item in allitems:
+        levels.append(item.count('.')+1)
+
     #print(column1)
     #print(column2)
 
     dataforframe = []
+    dataforframe.append(levels)
     dataforframe.append(allitems)
     dataforframe.append(column1)
     dataforframe.append(column2)
     transpose=list(map(list, zip(*dataforframe)))
-    df = DataFrame (transpose, columns=['Items',profile1,profile2])
+    df = DataFrame (transpose, columns=['Level','Items',profile1,profile2])
     #print(df)
     df.to_excel(sheetfile,index=False, header=True)
